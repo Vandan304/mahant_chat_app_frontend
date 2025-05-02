@@ -7,6 +7,8 @@ export const createChatSlice = (set, get) => ({
   isDownloading: false,
   fileUploadProgress: 0,
   fileDownloadProgress: 0,
+  channels: [],
+  setChannels: (channels) => set({ channels }),
   setIsUploading: (isUploading) => set({ isUploading }),
   setIsDownloading: (isDownloading) => ({ isDownloading }),
   setFileUploadProgress: (fileUploadProgress) => set({ fileUploadProgress }),
@@ -17,6 +19,10 @@ export const createChatSlice = (set, get) => ({
   setSelectedChatMessage: (selectedChatMessage) => set({ selectedChatMessage }),
   setDirectMessagesContacts: (directMessagesContacts) =>
     set({ directMessagesContacts }),
+  addChannel: (channel) => {
+    const channels = get().channels;
+    set({ channels: [channel, ...channels] });
+  },
   closeChat: () =>
     set({
       selectedChatData: undefined,
@@ -43,4 +49,45 @@ export const createChatSlice = (set, get) => ({
       ],
     });
   },
+  addChannelInChannelList: (message) => {
+    const channels = get().channels;
+    const data = channels.find((channel) => channel._id === message.channelId);
+    const index = channels.findIndex(
+      (channel) => channel._id === message.channelId
+    );
+    if (index !== -1 && index !== undefined) {
+      channels.splice(index, 1);
+      channels.unshift(data);
+    }
+  },
+
+  addContactsDmContacts: (message) => {
+    const userId = get().userInfo.id;
+    const fromId =
+      message.sender._id === userId
+        ? message.recipient._id
+        : message.sender._id;
+    const formData =
+      message.sender._id === userId ? message.recipient : message.sender;
+    const dmContacts = get().directMessagesContacts;
+  
+    const index = dmContacts.findIndex((contact) => contact._id === fromId);
+    const data = dmContacts.find((contact) => contact._id === fromId);
+  
+    console.log({ data, index, dmContacts, userId, message, formData });
+  
+    const updatedContacts = [...dmContacts]; // avoid direct mutation
+  
+    if (index !== -1 && index !== undefined) {
+      console.log("in if condition");
+      updatedContacts.splice(index, 1);
+      updatedContacts.unshift(data);
+    } else {
+      console.log("in else condition");
+      updatedContacts.unshift(formData);
+    }
+  
+    set({ directMessagesContacts: updatedContacts });
+  },
+  
 });
